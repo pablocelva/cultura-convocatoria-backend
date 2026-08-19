@@ -1,0 +1,28 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: convocatorias-api
+  
+  datasource:
+    # Usa la variable de entorno DB_URL. 
+    # Si no existe (ej. en producción sin .env), puedes poner un valor por defecto o dejarlo fallar.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/convocatorias_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
