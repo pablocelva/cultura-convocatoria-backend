@@ -5,6 +5,8 @@
 ![Arquitectura](https://img.shields.io/badge/Arquitectura-Limpia%20%2F%20Hexagonal-blue.svg)
 ![Base de Datos](https://img.shields.io/badge/DB-PostgreSQL%2017-blue.svg)
 ![Migraciones](https://img.shields.io/badge/Flyway-Migrated-green.svg)
+![Tests](https://img.shields.io/badge/Tests-33%20passed-brightgreen.svg)
+![Cobertura](https://img.shields.io/badge/JaCoCo-Active-blue.svg)
 ![Estado](https://img.shields.io/badge/Build-Passing-success.svg)
 
 **Convocatorias API** es un servicio REST desarrollado en **Java 21** y **Spring Boot 4.1.0** construido bajo los principios de **Arquitectura Limpia (Clean Architecture)**. Gestiona convocatorias artísticas y culturales (becas, fondos, residencias, premios) con persistencia en **PostgreSQL**, migraciones controladas por **Flyway**, mapeo objeto-relacional con **Spring Data JPA** + **Hibernate 7**, y reducción de boilerplate mediante **Lombok**.
@@ -59,7 +61,23 @@ convocatorias-api/
     │
     └── test/
         └── java/cl/tucultura/convocatorias_api/
-            └── ConvocatoriasApiApplicationTests.java                 # Test de contexto
+            ├── ConvocatoriasApiApplicationTests.java                 # Test de contexto (SpringBootTest)
+            ├── domain/
+            │   └── model/
+            │       └── ConvocatoriaTest.java                         # Tests del modelo dominio
+            ├── application/
+            │   └── service/
+            │       └── ConvocatoriaServiceImplTest.java              # Tests unitarios del servicio (Mockito)
+            └── infrastructure/
+                ├── persistence/
+                │   └── mapper/
+                │       └── ConvocatoriaMapperTest.java               # Tests unitarios del mapper
+                └── web/
+                    ├── controller/
+                    │   └── ConvocatoriaControllerTest.java          # Tests de integración REST (MockMvc)
+                    └── dto/
+                        ├── ConvocatoriaRequestDTOTest.java           # Tests unitarios del DTO de entrada
+                        └── ConvocatoriaResponseDTOTest.java          # Tests unitarios del DTO de salida
 ```
 
 ---
@@ -137,8 +155,35 @@ fuentes (UUID PK)
 ## Ejecución de Pruebas
 
 ```bash
+# Ejecutar todos los tests
 ./mvnw clean test
+
+# Generar reporte de cobertura JaCoCo
+./mvnw jacoco:report
+
+# Abrir reporte en el navegador
+start target/site/jacoco/index.html
 ```
+
+### Suite de Pruebas (33 tests)
+
+| Clase de Test | Tipo | Tests | Qué cubre |
+|---|---|---|---|
+| `ConvocatoriaTest` | Unit puro | 3 | Modelo de dominio (record `Convocatoria`) |
+| `ConvocatoriaMapperTest` | Unit puro | 9 | Mapeo Entity ↔ Domain con JSONB |
+| `ConvocatoriaServiceImplTest` | Unit (Mockito) | 8 | Lógica de negocio: CRUD, cálculo de estado, validaciones |
+| `ConvocatoriaControllerTest` | Integración (MockMvc) | 5 | Endpoints REST: GET, GET/{id}, POST, POST inválido |
+| `ConvocatoriaRequestDTOTest` | Unit puro | 5 | DTO de entrada: constructor, getters, validaciones |
+| `ConvocatoriaResponseDTOTest` | Unit puro | 2 | DTO de salida: mapeo completo de campos |
+| `ConvocatoriasApiApplicationTests` | Integración (Spring) | 1 | Carga del contexto Spring Boot |
+
+> **Nota Spring Boot 4.x**: `@WebMvcTest` se importa desde `org.springframework.boot.webmvc.test.autoconfigure` y `@MockitoBean` reemplaza a `@MockBean` (de `org.springframework.test.context.bean.override.mockito`).
+
+---
+
+## Cobertura de Código
+
+JaCoCo se configura automáticamente con las ejecuciones de test. El reporte se genera en `target/site/jacoco/index.html` y muestra la cobertura por clase, paquete y método.
 
 ---
 
