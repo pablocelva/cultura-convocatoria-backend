@@ -1,0 +1,14 @@
+{
+    "titulo": "Fondo de Música Emergente 2026",
+    "descripcion": "Apoyo a bandas jóvenes para grabación de primer EP.",
+    "tipo": "FONDO",
+    "categoria": "Música",
+    "monto": 5000000,
+    "moneda": "CLP",
+    "fechaApertura": "2026-08-01T00:00:00",
+    "fechaCierre": "2026-12-30T23:59:59",
+    "urlOficial": "https://www.cultura.gob.cl",
+    "requisitos": ["Ser mayor de 18", "Tener 2 temas originales"],
+    "documentacion": ["Cédula", "Demo Spotify"],
+    "fuenteId": null
+  }
