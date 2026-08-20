@@ -48,9 +48,11 @@ convocatorias-api/
     │   │       └── web/                                              # Adaptador Web REST
     │   │           ├── controller/
     │   │           │   └── ConvocatoriaController.java               # Controlador REST
-    │   │           └── dto/
-    │   │               ├── ConvocatoriaRequestDTO.java               # DTO de entrada (POST)
-    │   │               └── ConvocatoriaResponseDTO.java              # DTO de salida (GET)
+    │   │           ├── dto/
+    │   │           │   ├── ConvocatoriaRequestDTO.java               # DTO de entrada (POST)
+    │   │           │   └── ConvocatoriaResponseDTO.java              # DTO de salida (GET)
+    │   │           └── exception/
+    │   │               └── GlobalExceptionHandler.java               # Manejador global de excepciones
     │   │
     │   └── resources/
     │       ├── application.yaml                                      # Configuración de Spring Boot
