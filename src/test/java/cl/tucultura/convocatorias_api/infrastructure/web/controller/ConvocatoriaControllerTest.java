@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -46,6 +47,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 200 with list when listing active convocatorias")
     void listarActivas_retorna200ConLista() throws Exception {
         UUID id = UUID.randomUUID();
         when(service.listarActivas()).thenReturn(List.of(crearDominio(id, Convocatoria.EstadoConvocatoria.ABIERTA)));
@@ -58,6 +60,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 200 with empty array when no active convocatorias")
     void listarActivas_listaVacia_retorna200ConArrayVacio() throws Exception {
         when(service.listarActivas()).thenReturn(List.of());
 
@@ -68,6 +71,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 200 with convocatoria when found by id")
     void obtenerPorId_existente_retorna200() throws Exception {
         UUID id = UUID.randomUUID();
         when(service.obtenerPorId(id)).thenReturn(Optional.of(crearDominio(id, Convocatoria.EstadoConvocatoria.ABIERTA)));
@@ -79,6 +83,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 404 when convocatoria not found")
     void obtenerPorId_noExistente_retorna404() throws Exception {
         UUID id = UUID.randomUUID();
         when(service.obtenerPorId(id)).thenReturn(Optional.empty());
@@ -88,6 +93,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 200 with created convocatoria")
     void crear_retorna200ConConvocatoriaCreada() throws Exception {
         UUID id = UUID.randomUUID();
         Convocatoria creada = crearDominio(id, Convocatoria.EstadoConvocatoria.ABIERTA);
@@ -114,6 +120,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 with errors when body is empty")
     void crear_bodyVacio_retorna400ConErrores() throws Exception {
         mockMvc.perform(post("/api/convocatorias")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -126,6 +133,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 when tipo is invalid")
     void crear_tipoInvalido_retorna400() throws Exception {
         mockMvc.perform(post("/api/convocatorias")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -147,6 +155,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 when fechaCierre is before fechaApertura")
     void crear_fechaCierreAntesDeApertura_retorna400() throws Exception {
         mockMvc.perform(post("/api/convocatorias")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -168,6 +177,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 when urlOficial is not a valid URL")
     void crear_urlInvalida_retorna400() throws Exception {
         mockMvc.perform(post("/api/convocatorias")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -189,6 +199,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 200 with filtered results when both filters provided")
     void buscar_ambosFiltros_retorna200() throws Exception {
         UUID id = UUID.randomUUID();
         when(service.buscarPorFiltros("ABIERTA", "Música"))
@@ -202,6 +213,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 200 with empty array when no filters provided")
     void buscar_sinFiltros_retorna200() throws Exception {
         when(service.buscarPorFiltros(null, null))
             .thenReturn(List.of());
@@ -213,6 +225,7 @@ class ConvocatoriaControllerTest {
     }
 
     @Test
+    @DisplayName("Should return 400 when estado filter is invalid")
     void buscar_estadoInvalido_retorna400() throws Exception {
         mockMvc.perform(get("/api/convocatorias/buscar")
                 .param("estado", "INVALIDO"))
