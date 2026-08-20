@@ -5,7 +5,7 @@
 ![Arquitectura](https://img.shields.io/badge/Arquitectura-Limpia%20%2F%20Hexagonal-blue.svg)
 ![Base de Datos](https://img.shields.io/badge/DB-PostgreSQL%2017-blue.svg)
 ![Migraciones](https://img.shields.io/badge/Flyway-Migrated-green.svg)
-![Tests](https://img.shields.io/badge/Tests-33%20passed-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-42%20passed-brightgreen.svg)
 ![Cobertura](https://img.shields.io/badge/JaCoCo-Active-blue.svg)
 ![Estado](https://img.shields.io/badge/Build-Passing-success.svg)
 
@@ -75,9 +75,11 @@ convocatorias-api/
                 └── web/
                     ├── controller/
                     │   └── ConvocatoriaControllerTest.java          # Tests de integración REST (MockMvc)
-                    └── dto/
-                        ├── ConvocatoriaRequestDTOTest.java           # Tests unitarios del DTO de entrada
-                        └── ConvocatoriaResponseDTOTest.java          # Tests unitarios del DTO de salida
+                    ├── dto/
+                    │   ├── ConvocatoriaRequestDTOTest.java           # Tests unitarios del DTO de entrada
+                    │   └── ConvocatoriaResponseDTOTest.java          # Tests unitarios del DTO de salida
+                    └── exception/
+                        └── GlobalExceptionHandlerTest.java           # Tests unitarios del handler de excepciones
 ```
 
 ---
@@ -179,16 +181,17 @@ fuentes (UUID PK)
 start target/site/jacoco/index.html
 ```
 
-### Suite de Pruebas (33 tests)
+### Suite de Pruebas (42 tests)
 
 | Clase de Test | Tipo | Tests | Qué cubre |
 |---|---|---|---|
 | `ConvocatoriaTest` | Unit puro | 3 | Modelo de dominio (record `Convocatoria`) |
 | `ConvocatoriaMapperTest` | Unit puro | 9 | Mapeo Entity ↔ Domain con JSONB |
 | `ConvocatoriaServiceImplTest` | Unit (Mockito) | 8 | Lógica de negocio: CRUD, cálculo de estado, validaciones |
-| `ConvocatoriaControllerTest` | Integración (MockMvc) | 5 | Endpoints REST: GET, GET/{id}, POST, POST inválido |
-| `ConvocatoriaRequestDTOTest` | Unit puro | 5 | DTO de entrada: constructor, getters, validaciones |
+| `ConvocatoriaControllerTest` | Integración (MockMvc) | 9 | Endpoints REST: GET, GET/{id}, POST exitoso, validaciones de body, tipo, fechas, URL |
+| `ConvocatoriaRequestDTOTest` | Unit puro | 7 | DTO de entrada: constructor, conversión, defaults, validación de fechas |
 | `ConvocatoriaResponseDTOTest` | Unit puro | 2 | DTO de salida: mapeo completo de campos |
+| `GlobalExceptionHandlerTest` | Unit puro | 3 | Excepciones globales: validación, negocio, genéricas |
 | `ConvocatoriasApiApplicationTests` | Integración (Spring) | 1 | Carga del contexto Spring Boot |
 
 > **Nota Spring Boot 4.x**: `@WebMvcTest` se importa desde `org.springframework.boot.webmvc.test.autoconfigure` y `@MockitoBean` reemplaza a `@MockBean` (de `org.springframework.test.context.bean.override.mockito`).
@@ -199,8 +202,8 @@ start target/site/jacoco/index.html
 
 | Métrica | Cobertura |
 |---|---|
-| Instrucciones | **95%** (25 de 609 missed) |
-| Ramas | **89%** (3 de 28 missed) |
+| Instrucciones | **96%** (25 de 750 missed) |
+| Ramas | **90%** (3 de 32 missed) |
 | Métodos | **87%** (3 de 24 missed) |
 | Clases | **90%** (1 de 11 missed) |
 
@@ -212,6 +215,7 @@ start target/site/jacoco/index.html
 | `application.service` | 100% | 100% |
 | `infrastructure.web.controller` | 100% | n/a |
 | `infrastructure.web.dto` | 100% | 100% |
+| `infrastructure.web.exception` | 100% | 100% |
 | `infrastructure.persistence.mapper` | 98% | 91% |
 | `infrastructure.persistence.entity` | 0% | 0% |
 | `ConvocatoriasApiApplication` (main) | 37% | n/a |
@@ -219,6 +223,7 @@ start target/site/jacoco/index.html
 > **Notas**:
 > - `infrastructure.persistence.entity` (0%) es una clase JPA con anotaciones sin lógica testable unitariamente.
 > - `ConvocatoriasApiApplication` (37%) contiene solo el método `main()` que no se testea.
+> - `infrastructure.web.exception` (100%) cubre los 3 handlers del `GlobalExceptionHandler`.
 
 ### Generar Reporte
 

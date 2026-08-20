@@ -2,6 +2,7 @@ package cl.tucultura.convocatorias_api.infrastructure.web.dto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
@@ -49,7 +50,7 @@ class ConvocatoriaRequestDTOTest {
         ConvocatoriaRequestDTO dto = new ConvocatoriaRequestDTO(
             "t", "d", "BECA", "cat",
             BigDecimal.ZERO, null,
-            LocalDateTime.now(), LocalDateTime.now(),
+            LocalDateTime.now(), LocalDateTime.now().plusDays(1),
             "https://x.org", null, null, null
         );
         assertEquals("CLP", dto.toDomain().moneda());
@@ -60,7 +61,7 @@ class ConvocatoriaRequestDTOTest {
         ConvocatoriaRequestDTO dto = new ConvocatoriaRequestDTO(
             "t", "d", "BECA", "cat",
             BigDecimal.ZERO, "CLP",
-            LocalDateTime.now(), LocalDateTime.now(),
+            LocalDateTime.now(), LocalDateTime.now().plusDays(1),
             "https://x.org", null, null, null
         );
         assertTrue(dto.toDomain().requisitos().isEmpty());
@@ -71,7 +72,7 @@ class ConvocatoriaRequestDTOTest {
         ConvocatoriaRequestDTO dto = new ConvocatoriaRequestDTO(
             "t", "d", "BECA", "cat",
             BigDecimal.ZERO, "CLP",
-            LocalDateTime.now(), LocalDateTime.now(),
+            LocalDateTime.now(), LocalDateTime.now().plusDays(1),
             "https://x.org", null, null, null
         );
         assertTrue(dto.toDomain().documentacion().isEmpty());
@@ -82,9 +83,35 @@ class ConvocatoriaRequestDTOTest {
         ConvocatoriaRequestDTO dto = new ConvocatoriaRequestDTO(
             "t", "d", "beca", "cat",
             BigDecimal.ZERO, "CLP",
-            LocalDateTime.now(), LocalDateTime.now(),
+            LocalDateTime.now(), LocalDateTime.now().plusDays(1),
             "https://x.org", null, null, null
         );
         assertEquals(Convocatoria.TipoConvocatoria.BECA, dto.toDomain().tipo());
+    }
+
+    @Test
+    void toDomain_fechaCierreIgualAApertura_lanzaExcepcion() {
+        LocalDateTime fecha = LocalDateTime.now().plusDays(5);
+        ConvocatoriaRequestDTO dto = new ConvocatoriaRequestDTO(
+            "t", "d", "BECA", "cat",
+            BigDecimal.ZERO, "CLP",
+            fecha, fecha,
+            "https://x.org", null, null, null
+        );
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, dto::toDomain);
+        assertEquals("La fecha de cierre debe ser posterior a la fecha de apertura.", ex.getMessage());
+    }
+
+    @Test
+    void toDomain_fechaCierreAntesDeApertura_lanzaExcepcion() {
+        LocalDateTime apertura = LocalDateTime.now().plusDays(10);
+        LocalDateTime cierre = LocalDateTime.now().plusDays(5);
+        ConvocatoriaRequestDTO dto = new ConvocatoriaRequestDTO(
+            "t", "d", "BECA", "cat",
+            BigDecimal.ZERO, "CLP",
+            apertura, cierre,
+            "https://x.org", null, null, null
+        );
+        assertThrows(IllegalArgumentException.class, dto::toDomain);
     }
 }

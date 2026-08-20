@@ -5,24 +5,68 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.hibernate.validator.constraints.URL;
+
 import cl.tucultura.convocatorias_api.domain.model.Convocatoria;
+import jakarta.validation.constraints.*;
 
 public record ConvocatoriaRequestDTO(
-    String titulo, String descripcion, String tipo, String categoria,
-    BigDecimal monto, String moneda, LocalDateTime fechaApertura,
-    LocalDateTime fechaCierre, String urlOficial,
-    List<String> requisitos, List<String> documentacion, UUID fuenteId
+    
+    @NotBlank(message = "El título es obligatorio")
+    @Size(max = 255, message = "El título no puede superar los 255 caracteres")
+    String titulo,
+
+    @NotBlank(message = "La descripción es obligatoria")
+    String descripcion,
+
+    @NotBlank(message = "El tipo es obligatorio")
+    @Pattern(regexp = "BECA|FONDO|RESIDENCIA|PREMIO|CONVOCATORIA", message = "Tipo inválido")
+    String tipo,
+
+    @NotBlank(message = "La categoría es obligatoria")
+    String categoria,
+
+    @DecimalMin(value = "0.0", inclusive = true, message = "El monto no puede ser negativo")
+    BigDecimal monto,
+
+    String moneda,
+
+    @NotNull(message = "La fecha de apertura es obligatoria")
+    @FutureOrPresent(message = "La fecha de apertura no puede ser en el pasado")
+    LocalDateTime fechaApertura,
+
+    @NotNull(message = "La fecha de cierre es obligatoria")
+    @Future(message = "La fecha de cierre debe ser en el futuro")
+    LocalDateTime fechaCierre,
+
+    @NotBlank(message = "La URL oficial es obligatoria")
+    @URL(message = "La URL debe tener un formato válido")
+    String urlOficial,
+
+    List<String> requisitos,
+    List<String> documentacion,
+    UUID fuenteId
 ) {
    public Convocatoria toDomain() {
-    return new Convocatoria(
-        null, this.titulo, this.descripcion,
+        if (fechaCierre.isBefore(fechaApertura) || fechaCierre.isEqual(fechaApertura)) {
+            throw new IllegalArgumentException("La fecha de cierre debe ser posterior a la fecha de apertura.");
+        }
+
+        return new Convocatoria(
+            null, 
+            this.titulo.trim(), 
+            this.descripcion.trim(),
             Convocatoria.TipoConvocatoria.valueOf(this.tipo.toUpperCase()),
-            this.categoria, this.monto, this.moneda != null ? this.moneda : "CLP",
-            this.fechaApertura, this.fechaCierre, this.urlOficial,
+            this.categoria.trim(), 
+            this.monto, 
+            this.moneda != null ? this.moneda.toUpperCase() : "CLP",
+            this.fechaApertura,
+            this.fechaCierre,
+            this.urlOficial,
             null, 
             this.requisitos != null ? this.requisitos : List.of(),
             this.documentacion != null ? this.documentacion : List.of(),
             this.fuenteId
-    );
-   } 
+        );
+    }
 }

@@ -18,6 +18,7 @@ import cl.tucultura.convocatorias_api.domain.model.Convocatoria;
 import cl.tucultura.convocatorias_api.infrastructure.web.dto.ConvocatoriaRequestDTO;
 import cl.tucultura.convocatorias_api.infrastructure.web.dto.ConvocatoriaResponseDTO;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/convocatorias")
@@ -44,7 +45,7 @@ public class ConvocatoriaController {
     }
 
     @PostMapping
-    public ResponseEntity<ConvocatoriaResponseDTO> crear(@RequestBody ConvocatoriaRequestDTO request) {
+    public ResponseEntity<ConvocatoriaResponseDTO> crear(@Valid @RequestBody ConvocatoriaRequestDTO request) {
         Convocatoria dominio = request.toDomain();
         Convocatoria creada = service.crearConvocatoria(dominio);
         return ResponseEntity.ok(ConvocatoriaResponseDTO.fromDomain(creada));

@@ -102,7 +102,7 @@ class ConvocatoriaControllerTest {
                         "categoria": "Música",
                         "monto": 5000000,
                         "moneda": "CLP",
-                        "fechaApertura": "2026-08-01T00:00:00",
+                        "fechaApertura": "2026-09-01T00:00:00",
                         "fechaCierre": "2026-12-31T23:59:59",
                         "urlOficial": "https://cultura.gob.cl"
                     }
@@ -110,5 +110,80 @@ class ConvocatoriaControllerTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.id").value(id.toString()))
             .andExpect(jsonPath("$.titulo").value("Beca Música 2026"));
+    }
+
+    @Test
+    void crear_bodyVacio_retorna400ConErrores() throws Exception {
+        mockMvc.perform(post("/api/convocatorias")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.status").value(400))
+            .andExpect(jsonPath("$.details.titulo").value("El título es obligatorio"))
+            .andExpect(jsonPath("$.details.descripcion").value("La descripción es obligatoria"))
+            .andExpect(jsonPath("$.details.tipo").value("El tipo es obligatorio"));
+    }
+
+    @Test
+    void crear_tipoInvalido_retorna400() throws Exception {
+        mockMvc.perform(post("/api/convocatorias")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "titulo": "Beca",
+                        "descripcion": "Desc",
+                        "tipo": "INVALIDO",
+                        "categoria": "Música",
+                        "monto": 1000000,
+                        "moneda": "CLP",
+                        "fechaApertura": "2026-09-01T00:00:00",
+                        "fechaCierre": "2026-12-31T23:59:59",
+                        "urlOficial": "https://ejemplo.org"
+                    }
+                    """))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.details.tipo").value("Tipo inválido"));
+    }
+
+    @Test
+    void crear_fechaCierreAntesDeApertura_retorna400() throws Exception {
+        mockMvc.perform(post("/api/convocatorias")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "titulo": "Beca",
+                        "descripcion": "Desc",
+                        "tipo": "BECA",
+                        "categoria": "Música",
+                        "monto": 1000000,
+                        "moneda": "CLP",
+                        "fechaApertura": "2026-12-31T00:00:00",
+                        "fechaCierre": "2026-09-01T00:00:00",
+                        "urlOficial": "https://ejemplo.org"
+                    }
+                    """))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("La fecha de cierre debe ser posterior a la fecha de apertura."));
+    }
+
+    @Test
+    void crear_urlInvalida_retorna400() throws Exception {
+        mockMvc.perform(post("/api/convocatorias")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {
+                        "titulo": "Beca",
+                        "descripcion": "Desc",
+                        "tipo": "BECA",
+                        "categoria": "Música",
+                        "monto": 1000000,
+                        "moneda": "CLP",
+                        "fechaApertura": "2026-09-01T00:00:00",
+                        "fechaCierre": "2026-12-31T23:59:59",
+                        "urlOficial": "no-es-url"
+                    }
+                    """))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.details.urlOficial").value("La URL debe tener un formato válido"));
     }
 }
