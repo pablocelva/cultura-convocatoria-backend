@@ -82,7 +82,9 @@ convocatorias-api/
 
 ---
 
-## Dependencias Principales
+## Dependencias
+
+### Dependencias de Producción
 
 | Dependencia | Versión | Propósito |
 |---|---|---|
@@ -94,6 +96,18 @@ convocatorias-api/
 | Flyway PostgreSQL | Runtime | Soporte nativo Flyway para PostgreSQL |
 | Lombok | Compile | Reducción de boilerplate |
 | Jackson (via Spring) | Transitive | Serialización JSON (Jackson 3.x) |
+
+### Dependencias de Testing
+
+| Dependencia | Scope | Propósito |
+|---|---|---|
+| Spring Boot Starter Test | test | JUnit 5, Mockito, AssertJ, Hamcrest |
+| Spring Boot Starter WebMVC Test | test | `@WebMvcTest` + MockMvc para tests de controladores |
+| Spring Boot Starter Data JPA Test | test | `@DataJpaTest` + repositorios en H2 |
+| Spring Boot Starter Flyway Test | test | `@FlywayTest` para tests con esquema controlado |
+| Spring Boot Starter Validation Test | test | `@ValidationTest` para tests de validación |
+| H2 Database | test | Base de datos en memoria (no requiere PostgreSQL) |
+| JaCoCo Maven Plugin | build | Cobertura de código con reporte HTML |
 
 ---
 
@@ -181,9 +195,37 @@ start target/site/jacoco/index.html
 
 ---
 
-## Cobertura de Código
+## Cobertura de Código (JaCoCo)
 
-JaCoCo se configura automáticamente con las ejecuciones de test. El reporte se genera en `target/site/jacoco/index.html` y muestra la cobertura por clase, paquete y método.
+| Métrica | Cobertura |
+|---|---|
+| Instrucciones | **95%** (25 de 609 missed) |
+| Ramas | **89%** (3 de 28 missed) |
+| Métodos | **87%** (3 de 24 missed) |
+| Clases | **90%** (1 de 11 missed) |
+
+### Cobertura por Paquete
+
+| Paquete | Instrucciones | Ramas |
+|---|---|---|
+| `domain.model` | 100% | 100% |
+| `application.service` | 100% | 100% |
+| `infrastructure.web.controller` | 100% | n/a |
+| `infrastructure.web.dto` | 100% | 100% |
+| `infrastructure.persistence.mapper` | 98% | 91% |
+| `infrastructure.persistence.entity` | 0% | 0% |
+| `ConvocatoriasApiApplication` (main) | 37% | n/a |
+
+> **Notas**:
+> - `infrastructure.persistence.entity` (0%) es una clase JPA con anotaciones sin lógica testable unitariamente.
+> - `ConvocatoriasApiApplication` (37%) contiene solo el método `main()` que no se testea.
+
+### Generar Reporte
+
+```bash
+./mvnw test jacoco:report
+start target/site/jacoco/index.html
+```
 
 ---
 
