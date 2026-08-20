@@ -5,8 +5,8 @@
 ![Arquitectura](https://img.shields.io/badge/Arquitectura-Limpia%20%2F%20Hexagonal-blue.svg)
 ![Base de Datos](https://img.shields.io/badge/DB-PostgreSQL%2017-blue.svg)
 ![Migraciones](https://img.shields.io/badge/Flyway-Migrated-green.svg)
-![Tests](https://img.shields.io/badge/Tests-49%20passed-brightgreen.svg)
-![Cobertura](https://img.shields.io/badge/JaCoCo-Active-blue.svg)
+![Tests](https://img.shields.io/badge/Tests-103%20passed-brightgreen.svg)
+![Cobertura](https://img.shields.io/badge/JaCoCo-97%25%20instrucciones-blue.svg)
 ![Estado](https://img.shields.io/badge/Build-Passing-success.svg)
 
 **Convocatorias API** es un servicio REST desarrollado en **Java 21** y **Spring Boot 4.1.0** construido bajo los principios de **Arquitectura Limpia (Clean Architecture)**. Gestiona convocatorias artísticas y culturales (becas, fondos, residencias, premios) con persistencia en **PostgreSQL**, migraciones controladas por **Flyway**, mapeo objeto-relacional con **Spring Data JPA** + **Hibernate 7**, y reducción de boilerplate mediante **Lombok**.
@@ -29,8 +29,17 @@ convocatorias-api/
     │   │   ├── ConvocatoriasApiApplication.java                     # Punto de entrada de Spring Boot
     │   │   │
     │   │   ├── domain/                                               # 1. CAPA DE DOMINIO
-    │   │   │   └── model/
-    │   │   │       └── Convocatoria.java                             # Modelo de dominio (record)
+    │   │   │   ├── model/
+    │   │   │   │   └── Convocatoria.java                             # Modelo de dominio (record)
+    │   │   │   ├── valueobject/                                      # Objetos de Valor
+    │   │   │   │   ├── Titulo.java                                   # Título (String, max 255)
+    │   │   │   │   ├── Descripcion.java                              # Descripción (String)
+    │   │   │   │   ├── Categoria.java                                # Categoría (String)
+    │   │   │   │   ├── Monto.java                                    # Monto (BigDecimal + moneda)
+    │   │   │   │   └── UrlOficial.java                               # URL oficial (https://...)
+    │   │   │   └── exception/                                        # Excepciones de Dominio
+    │   │   │       ├── FechaCierreInvalidaException.java             # Fecha cierre <= apertura
+    │   │   │       └── EstadoInvalidoException.java                  # Estado no válido
     │   │   │
     │   │   ├── application/                                          # 2. CAPA DE APLICACIÓN
     │   │   │   └── service/
@@ -47,7 +56,8 @@ convocatorias-api/
     │   │       │       └── ConvocatoriaRepository.java               # Repositorio Spring Data JPA
     │   │       └── web/                                              # Adaptador Web REST
     │   │           ├── controller/
-    │   │           │   └── ConvocatoriaController.java               # Controlador REST
+    │   │           │   ├── ConvocatoriaController.java               # Controlador REST principal
+    │   │           │   └── HealthController.java                     # Endpoint de salud
     │   │           ├── dto/
     │   │           │   ├── ConvocatoriaRequestDTO.java               # DTO de entrada (POST)
     │   │           │   └── ConvocatoriaResponseDTO.java              # DTO de salida (GET)
@@ -65,8 +75,10 @@ convocatorias-api/
         └── java/cl/tucultura/convocatorias_api/
             ├── ConvocatoriasApiApplicationTests.java                 # Test de contexto (SpringBootTest)
             ├── domain/
-            │   └── model/
-            │       └── ConvocatoriaTest.java                         # Tests del modelo dominio
+            │   ├── model/
+            │   │   └── ConvocatoriaTest.java                         # Tests del modelo dominio (parametrizados)
+            │   └── valueobject/
+            │       └── ValueObjectTest.java                          # Tests parametrizados de los 5 VOs
             ├── application/
             │   └── service/
             │       └── ConvocatoriaServiceImplTest.java              # Tests unitarios del servicio (Mockito)
@@ -76,7 +88,8 @@ convocatorias-api/
                 │       └── ConvocatoriaMapperTest.java               # Tests unitarios del mapper
                 └── web/
                     ├── controller/
-                    │   └── ConvocatoriaControllerTest.java          # Tests de integración REST (MockMvc)
+                    │   ├── ConvocatoriaControllerTest.java          # Tests de integración REST (MockMvc)
+                    │   └── HealthControllerTest.java                 # Tests del healthcheck
                     ├── dto/
                     │   ├── ConvocatoriaRequestDTOTest.java           # Tests unitarios del DTO de entrada
                     │   └── ConvocatoriaResponseDTOTest.java          # Tests unitarios del DTO de salida
@@ -170,6 +183,27 @@ fuentes (UUID PK)
 
 ---
 
+## Dominio: Objetos de Valor (Value Objects)
+
+El proyecto aplica **Objetos de Valor** (DDD) para encapsular la lógica de validación en el dominio, evitando que valores inválidos entren en el sistema:
+
+| Value Object | Tipo | Validación |
+|---|---|---|
+| `Titulo` | `record(String value)` | No vacío, max 255 chars, se trimea |
+| `Descripcion` | `record(String value)` | No vacío, se trimea |
+| `Categoria` | `record(String value)` | No vacío, se trimea |
+| `Monto` | `record(BigDecimal value, String moneda)` | Value >= 0 (nullable), moneda default `"CLP"`, se mayusculiza |
+| `UrlOficial` | `record(String value)` | No vacío, debe empezar con `http://` o `https://`, no solo el prefijo |
+
+**Excepciones de dominio:**
+
+| Excepción | Cuándo se lanza |
+|---|---|
+| `FechaCierreInvalidaException` | La fecha de cierre es anterior o igual a la de apertura |
+| `EstadoInvalidoException` | Se intenta filtrar por un estado que no existe |
+
+---
+
 ## Ejecución de Pruebas
 
 ```bash
@@ -183,20 +217,29 @@ fuentes (UUID PK)
 start target/site/jacoco/index.html
 ```
 
-### Suite de Pruebas (49 tests)
+### Suite de Pruebas (103 tests)
 
 | Clase de Test | Tipo | Tests | Qué cubre |
 |---|---|---|---|
-| `ConvocatoriaTest` | Unit puro | 3 | Modelo de dominio (record `Convocatoria`) |
-| `ConvocatoriaMapperTest` | Unit puro | 9 | Mapeo Entity ↔ Domain con JSONB |
+| `ConvocatoriaTest` | Unit puro | 3 | Modelo de dominio: `estavigente()` con test parametrizado (`@MethodSource`) |
+| `ValueObjectTest` | Unit puro | 49 | Validación de los 5 VOs: `@ParameterizedTest` con `@CsvSource`, `@MethodSource`, `@ValueSource`, `@NullAndEmptySource` |
+| `ConvocatoriaMapperTest` | Unit puro | 10 | Mapeo Entity ↔ Domain con JSONB, null safety, monto null |
 | `ConvocatoriaServiceImplTest` | Unit (Mockito) | 12 | Lógica de negocio: CRUD, cálculo de estado, búsqueda por filtros |
 | `ConvocatoriaControllerTest` | Integración (MockMvc) | 12 | Endpoints REST: GET, GET/{id}, POST, /buscar, validaciones |
-| `ConvocatoriaRequestDTOTest` | Unit puro | 7 | DTO de entrada: constructor, conversión, defaults, validación de fechas |
-| `ConvocatoriaResponseDTOTest` | Unit puro | 2 | DTO de salida: mapeo completo de campos |
-| `GlobalExceptionHandlerTest` | Unit puro | 3 | Excepciones globales: validación, negocio, genéricas |
+| `ConvocatoriaRequestDTOTest` | Unit puro | 8 | DTO de entrada: constructor, conversión a VOs, defaults, validación de fechas |
+| `ConvocatoriaResponseDTOTest` | Unit puro | 3 | DTO de salida: mapeo completo de campos, monto null |
+| `HealthControllerTest` | Integración (MockMvc) | 1 | Endpoint de salud `/api/healthcheck` |
+| `GlobalExceptionHandlerTest` | Unit puro | 4 | Excepciones globales: `IllegalArgumentException`, `FechaCierreInvalidaException`, `EstadoInvalidoException`, genéricas |
 | `ConvocatoriasApiApplicationTests` | Integración (Spring) | 1 | Carga del contexto Spring Boot |
 
-> **Nota Spring Boot 4.x**: `@WebMvcTest` se importa desde `org.springframework.boot.webmvc.test.autoconfigure` y `@MockitoBean` reemplaza a `@MockBean` (de `org.springframework.test.context.bean.override.mockito`).
+> **Técnicas de testing utilizadas:**
+> - `@ParameterizedTest` con `@MethodSource`, `@CsvSource`, `@ValueSource`, `@NullAndEmptySource` (JUnit 5)
+> - `@DisplayName` en clase y cada método de test
+> - AssertJ (`assertThat`) como librería de assertions
+> - Mockito (`@Mock`, `@InjectMocks`) para tests unitarios de servicio
+> - MockMvc (`@WebMvcTest`) para tests de integración REST
+> - `@WebMvcTest` se importa desde `org.springframework.boot.webmvc.test.autoconfigure` (Spring Boot 4.x)
+> - `@MockitoBean` reemplaza a `@MockBean` (de `org.springframework.test.context.bean.override.mockito`)
 
 ---
 
@@ -204,28 +247,24 @@ start target/site/jacoco/index.html
 
 | Métrica | Cobertura |
 |---|---|
-| Instrucciones | **96%** (25 de 750 missed) |
-| Ramas | **90%** (3 de 32 missed) |
-| Métodos | **87%** (3 de 24 missed) |
-| Clases | **90%** (1 de 11 missed) |
+| Instrucciones | **97%** (11 de 434 missed) |
+| Ramas | **96%** (2 de 56 missed) |
+| Métodos | **100%** (0 de 16 missed) |
+| Clases | **100%** (0 de 11 missed) |
 
 ### Cobertura por Paquete
 
 | Paquete | Instrucciones | Ramas |
 |---|---|---|
 | `domain.model` | 100% | 100% |
-| `application.service` | 100% | 100% |
-| `infrastructure.web.controller` | 100% | n/a |
-| `infrastructure.web.dto` | 100% | 100% |
-| `infrastructure.web.exception` | 100% | 100% |
-| `infrastructure.persistence.mapper` | 98% | 91% |
-| `infrastructure.persistence.entity` | 0% | 0% |
-| `ConvocatoriasApiApplication` (main) | 37% | n/a |
+| `domain.exception` | 100% | n/a |
+| `domain.valueobject` | 96% | 97% |
+| `application.service` | 95% | 92% |
 
 > **Notas**:
-> - `infrastructure.persistence.entity` (0%) es una clase JPA con anotaciones sin lógica testable unitariamente.
-> - `ConvocatoriasApiApplication` (37%) contiene solo el método `main()` que no se testea.
-> - `infrastructure.web.exception` (100%) cubre los 3 handlers del `GlobalExceptionHandler`.
+> - `infrastructure` está excluido del reporte JaCoCo (controllers, DTOs, mapper, entity, handler) ya que son adaptadores de framework.
+> - `ConvocatoriasApiApplication` (main) también está excluido del reporte.
+> - `domain.valueobject` (96%) tiene instrucciones missed por los branches del null-check en `Monto` y `UrlOficial`.
 
 ### Generar Reporte
 
@@ -238,7 +277,23 @@ start target/site/jacoco/index.html
 
 ## Documentación de Endpoints REST
 
-### 1. `GET /api/convocatorias` - Listar Convocatorias Activas
+### 1. `GET /api/healthcheck` - Healthcheck
+
+Verifica que la aplicación esté funcionando.
+
+- **Método**: `GET`
+- **URL**: `http://localhost:8090/api/healthcheck`
+- **Respuesta (`200 OK`)**:
+
+```json
+{
+  "status": "UP"
+}
+```
+
+---
+
+### 2. `GET /api/convocatorias` - Listar Convocatorias Activas
 
 Retorna todas las convocatorias con estado `ABIERTA` y fecha de cierre futura.
 
@@ -269,7 +324,7 @@ Retorna todas las convocatorias con estado `ABIERTA` y fecha de cierre futura.
 
 ---
 
-### 2. `GET /api/convocatorias/{id}` - Obtener Convocatoria por ID
+### 3. `GET /api/convocatorias/{id}` - Obtener Convocatoria por ID
 
 Retorna una convocatoria específica por su UUID.
 
@@ -280,7 +335,7 @@ Retorna una convocatoria específica por su UUID.
 
 ---
 
-### 3. `POST /api/convocatorias` - Crear Convocatoria
+### 4. `POST /api/convocatorias` - Crear Convocatoria
 
 Crea una nueva convocatoria. El campo `estado` se calcula automáticamente según las fechas.
 
@@ -330,9 +385,19 @@ Crea una nueva convocatoria. El campo `estado` se calcula automáticamente segú
 
 > **Nota**: El `estado` se calcula automáticamente. Si la `fechaApertura` es futura → `PROXIMAMENTE`. Si `fechaCierre` es pasada → `CERRADA`. Si las fechas encuadran → `ABIERTA`.
 
+#### Errores de Validación (`400 Bad Request`):
+
+| Condición | Mensaje |
+|---|---|
+| `titulo` vacío | `"El título es obligatorio"` |
+| `titulo` > 255 chars | `"El título no puede superar los 255 caracteres"` |
+| `tipo` no válido | `"Tipo inválido"` |
+| `fechaCierre` <= `fechaApertura` | `"La fecha de cierre debe ser posterior a la fecha de apertura."` |
+| `urlOficial` no es URL válida | `"La URL debe tener un formato válido"` |
+
 ---
 
-### 4. `GET /api/convocatorias/buscar` - Buscar por Filtros
+### 5. `GET /api/convocatorias/buscar` - Buscar por Filtros
 
 Busca convocatorias filtrando por estado, categoría o ambos. Parámetros opcionales.
 
@@ -342,7 +407,7 @@ Busca convocatorias filtrando por estado, categoría o ambos. Parámetros opcion
   - `estado` (opcional): `ABIERTA`, `PROXIMAMENTE`, `CERRADA`, `CANCELADA`
   - `categoria` (opcional): texto a buscar (búsqueda parcial, case-insensitive)
 - **Respuesta (`200 OK`)**: Lista de convocatorias que coinciden con los filtros.
-- **Respuesta (`400 Bad Request`)**: Si el valor de `estado` no es válido.
+- **Respuesta (`400 Bad Request`)**: Si el valor de `estado` no es válido (lanza `EstadoInvalidoException`).
 
 #### Ejemplos:
 
@@ -365,6 +430,9 @@ curl -i "http://localhost:8090/api/convocatorias/buscar"
 ## Guía de Pruebas con cURL
 
 ```bash
+# 0. Healthcheck
+curl -i -X GET http://localhost:8090/api/healthcheck
+
 # 1. Listar convocatorias activas
 curl -i -X GET http://localhost:8090/api/convocatorias
 
@@ -398,5 +466,5 @@ curl -i "http://localhost:8090/api/convocatorias/buscar?estado=ABIERTA&categoria
 ## Configuración en Postman
 
 1. Crear una colección llamada `Convocatorias API`.
-2. Agregar las 4 peticiones descritas arriba con su correspondiente verbo HTTP.
+2. Agregar las 5 peticiones descritas arriba con su correspondiente verbo HTTP.
 3. En la petición `POST`, configurar el Header `Content-Type: application/json` y seleccionar `body` -> `raw` -> `JSON`.

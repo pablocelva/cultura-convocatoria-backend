@@ -6,9 +6,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import cl.tucultura.convocatorias_api.domain.valueobject.*;
 
@@ -26,33 +29,34 @@ class ConvocatoriaTest {
         );
     }
 
-    @Test
-    @DisplayName("Should return true when current date is within opening and closing dates")
-    void estavigente_fechasEnRango_devuelveTrue() {
-        Convocatoria c = crearConvocatoria(
-            LocalDateTime.now().minusDays(10),
-            LocalDateTime.now().plusDays(10)
+    static Stream<Arguments> fechasEstavigente() {
+        return Stream.of(
+            Arguments.of(
+                LocalDateTime.now().minusDays(10),
+                LocalDateTime.now().plusDays(10),
+                true,
+                "fechas dentro del rango -> true"
+            ),
+            Arguments.of(
+                LocalDateTime.now().plusDays(10),
+                LocalDateTime.now().plusDays(20),
+                false,
+                "apertura en el futuro -> false"
+            ),
+            Arguments.of(
+                LocalDateTime.now().minusDays(20),
+                LocalDateTime.now().minusDays(10),
+                false,
+                "cierre en el pasado -> false"
+            )
         );
-        assertThat(c.estavigente()).isTrue();
     }
 
-    @Test
-    @DisplayName("Should return false when opening date is in the future")
-    void estavigente_fechaFutura_devuelveFalse() {
-        Convocatoria c = crearConvocatoria(
-            LocalDateTime.now().plusDays(10),
-            LocalDateTime.now().plusDays(20)
-        );
-        assertThat(c.estavigente()).isFalse();
-    }
-
-    @Test
-    @DisplayName("Should return false when closing date is in the past")
-    void estavigente_fechaPasado_devuelveFalse() {
-        Convocatoria c = crearConvocatoria(
-            LocalDateTime.now().minusDays(20),
-            LocalDateTime.now().minusDays(10)
-        );
-        assertThat(c.estavigente()).isFalse();
+    @ParameterizedTest(name = "{2}")
+    @MethodSource("fechasEstavigente")
+    @DisplayName("Should return correct estavigente value based on date range")
+    void estavigente_fechasParametrizadas(LocalDateTime apertura, LocalDateTime cierre, boolean esperado, String desc) {
+        Convocatoria c = crearConvocatoria(apertura, cierre);
+        assertThat(c.estavigente()).isEqualTo(esperado);
     }
 }
