@@ -186,4 +186,36 @@ class ConvocatoriaControllerTest {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.details.urlOficial").value("La URL debe tener un formato válido"));
     }
+
+    @Test
+    void buscar_ambosFiltros_retorna200() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(service.buscarPorFiltros("ABIERTA", "Música"))
+            .thenReturn(List.of(crearDominio(id, Convocatoria.EstadoConvocatoria.ABIERTA)));
+
+        mockMvc.perform(get("/api/convocatorias/buscar")
+                .param("estado", "ABIERTA")
+                .param("categoria", "Música"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].titulo").value("Beca Música 2026"));
+    }
+
+    @Test
+    void buscar_sinFiltros_retorna200() throws Exception {
+        when(service.buscarPorFiltros(null, null))
+            .thenReturn(List.of());
+
+        mockMvc.perform(get("/api/convocatorias/buscar"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+    }
+
+    @Test
+    void buscar_estadoInvalido_retorna400() throws Exception {
+        mockMvc.perform(get("/api/convocatorias/buscar")
+                .param("estado", "INVALIDO"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("Estado inválido. Valores permitidos: ABIERTA, PROXIMAMENTE, CERRADA, CANCELADA"));
+    }
 }

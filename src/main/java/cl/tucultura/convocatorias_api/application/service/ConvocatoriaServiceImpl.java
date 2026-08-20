@@ -35,6 +35,27 @@ public class ConvocatoriaServiceImpl implements ConvocatoriaService {
     }
 
     @Override
+    public List<Convocatoria> buscarPorFiltros(String estado, String categoria) {
+        List<ConvocatoriaEntity> entities;
+
+        if (estado != null && categoria != null) {
+            entities = repository.findByEstadoAndCategoriaContainingIgnoreCase(estado, categoria);
+        } else if (estado != null) {
+            if (Convocatoria.EstadoConvocatoria.valueOf(estado) == Convocatoria.EstadoConvocatoria.ABIERTA) {
+                entities = repository.findByEstadoAndFechaCierreAfter(estado, LocalDateTime.now());
+            } else {
+                entities = repository.findByEstado(estado);
+            }
+        } else if (categoria != null) {
+            entities = repository.findByCategoriaContainingIgnoreCase(categoria);
+        } else {
+            return listarActivas();
+        }
+
+        return entities.stream().map(mapper::toDomain).collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public Convocatoria crearConvocatoria(Convocatoria convocatoria) {
         LocalDateTime ahora = LocalDateTime.now();

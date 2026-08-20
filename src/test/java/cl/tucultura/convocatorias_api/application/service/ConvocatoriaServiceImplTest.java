@@ -174,4 +174,76 @@ class ConvocatoriaServiceImplTest {
         verify(mapper).toEntity(any());
         verify(repository).save(entityGuardada);
     }
+
+    @Test
+    void buscarPorFiltros_ambosParametros_devuelveFiltrado() {
+        ConvocatoriaEntity entity = new ConvocatoriaEntity();
+        Convocatoria dominio = crearDominio(
+            LocalDateTime.now().minusDays(5), LocalDateTime.now().plusDays(5),
+            Convocatoria.EstadoConvocatoria.ABIERTA
+        );
+
+        when(repository.findByEstadoAndCategoriaContainingIgnoreCase("ABIERTA", "Música"))
+            .thenReturn(List.of(entity));
+        when(mapper.toDomain(entity)).thenReturn(dominio);
+
+        List<Convocatoria> resultado = service.buscarPorFiltros("ABIERTA", "Música");
+
+        assertEquals(1, resultado.size());
+        assertEquals("Música", resultado.get(0).categoria());
+    }
+
+    @Test
+    void buscarPorFiltros_soloEstadoAbierta_filtraPorFechaCierre() {
+        ConvocatoriaEntity entity = new ConvocatoriaEntity();
+        Convocatoria dominio = crearDominio(
+            LocalDateTime.now().minusDays(5), LocalDateTime.now().plusDays(5),
+            Convocatoria.EstadoConvocatoria.ABIERTA
+        );
+
+        when(repository.findByEstadoAndFechaCierreAfter(eq("ABIERTA"), any(LocalDateTime.class)))
+            .thenReturn(List.of(entity));
+        when(mapper.toDomain(entity)).thenReturn(dominio);
+
+        List<Convocatoria> resultado = service.buscarPorFiltros("ABIERTA", null);
+
+        assertEquals(1, resultado.size());
+        verify(repository).findByEstadoAndFechaCierreAfter(eq("ABIERTA"), any(LocalDateTime.class));
+    }
+
+    @Test
+    void buscarPorFiltros_soloCategoria_devuelvePorCategoria() {
+        ConvocatoriaEntity entity = new ConvocatoriaEntity();
+        Convocatoria dominio = crearDominio(
+            LocalDateTime.now().minusDays(5), LocalDateTime.now().plusDays(5),
+            Convocatoria.EstadoConvocatoria.ABIERTA
+        );
+
+        when(repository.findByCategoriaContainingIgnoreCase("Música"))
+            .thenReturn(List.of(entity));
+        when(mapper.toDomain(entity)).thenReturn(dominio);
+
+        List<Convocatoria> resultado = service.buscarPorFiltros(null, "Música");
+
+        assertEquals(1, resultado.size());
+        verify(repository).findByCategoriaContainingIgnoreCase("Música");
+    }
+
+    @Test
+    void buscarPorFiltros_sinParametros_devuelveActivas() {
+        ConvocatoriaEntity entity = new ConvocatoriaEntity();
+        Convocatoria dominio = crearDominio(
+            LocalDateTime.now().minusDays(5), LocalDateTime.now().plusDays(5),
+            Convocatoria.EstadoConvocatoria.ABIERTA
+        );
+
+        when(repository.findByEstadoAndFechaCierreAfter(eq("ABIERTA"), any(LocalDateTime.class)))
+            .thenReturn(List.of(entity));
+        when(mapper.toDomain(entity)).thenReturn(dominio);
+
+        List<Convocatoria> resultado = service.buscarPorFiltros(null, null);
+
+        assertEquals(1, resultado.size());
+        verify(repository).findByEstadoAndFechaCierreAfter(eq("ABIERTA"), any(LocalDateTime.class));
+    }
 }

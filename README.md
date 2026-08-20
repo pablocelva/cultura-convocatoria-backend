@@ -5,7 +5,7 @@
 ![Arquitectura](https://img.shields.io/badge/Arquitectura-Limpia%20%2F%20Hexagonal-blue.svg)
 ![Base de Datos](https://img.shields.io/badge/DB-PostgreSQL%2017-blue.svg)
 ![Migraciones](https://img.shields.io/badge/Flyway-Migrated-green.svg)
-![Tests](https://img.shields.io/badge/Tests-42%20passed-brightgreen.svg)
+![Tests](https://img.shields.io/badge/Tests-49%20passed-brightgreen.svg)
 ![Cobertura](https://img.shields.io/badge/JaCoCo-Active-blue.svg)
 ![Estado](https://img.shields.io/badge/Build-Passing-success.svg)
 
@@ -183,14 +183,14 @@ fuentes (UUID PK)
 start target/site/jacoco/index.html
 ```
 
-### Suite de Pruebas (42 tests)
+### Suite de Pruebas (49 tests)
 
 | Clase de Test | Tipo | Tests | Qué cubre |
 |---|---|---|---|
 | `ConvocatoriaTest` | Unit puro | 3 | Modelo de dominio (record `Convocatoria`) |
 | `ConvocatoriaMapperTest` | Unit puro | 9 | Mapeo Entity ↔ Domain con JSONB |
-| `ConvocatoriaServiceImplTest` | Unit (Mockito) | 8 | Lógica de negocio: CRUD, cálculo de estado, validaciones |
-| `ConvocatoriaControllerTest` | Integración (MockMvc) | 9 | Endpoints REST: GET, GET/{id}, POST exitoso, validaciones de body, tipo, fechas, URL |
+| `ConvocatoriaServiceImplTest` | Unit (Mockito) | 12 | Lógica de negocio: CRUD, cálculo de estado, búsqueda por filtros |
+| `ConvocatoriaControllerTest` | Integración (MockMvc) | 12 | Endpoints REST: GET, GET/{id}, POST, /buscar, validaciones |
 | `ConvocatoriaRequestDTOTest` | Unit puro | 7 | DTO de entrada: constructor, conversión, defaults, validación de fechas |
 | `ConvocatoriaResponseDTOTest` | Unit puro | 2 | DTO de salida: mapeo completo de campos |
 | `GlobalExceptionHandlerTest` | Unit puro | 3 | Excepciones globales: validación, negocio, genéricas |
@@ -332,6 +332,36 @@ Crea una nueva convocatoria. El campo `estado` se calcula automáticamente segú
 
 ---
 
+### 4. `GET /api/convocatorias/buscar` - Buscar por Filtros
+
+Busca convocatorias filtrando por estado, categoría o ambos. Parámetros opcionales.
+
+- **Método**: `GET`
+- **URL**: `http://localhost:8090/api/convocatorias/buscar`
+- **Parámetros query**:
+  - `estado` (opcional): `ABIERTA`, `PROXIMAMENTE`, `CERRADA`, `CANCELADA`
+  - `categoria` (opcional): texto a buscar (búsqueda parcial, case-insensitive)
+- **Respuesta (`200 OK`)**: Lista de convocatorias que coinciden con los filtros.
+- **Respuesta (`400 Bad Request`)**: Si el valor de `estado` no es válido.
+
+#### Ejemplos:
+
+```bash
+# Buscar por estado
+curl -i "http://localhost:8090/api/convocatorias/buscar?estado=ABIERTA"
+
+# Buscar por categoría
+curl -i "http://localhost:8090/api/convocatorias/buscar?categoria=Música"
+
+# Buscar por ambos
+curl -i "http://localhost:8090/api/convocatorias/buscar?estado=ABIERTA&categoria=Música"
+
+# Sin filtros (devuelve todas las activas)
+curl -i "http://localhost:8090/api/convocatorias/buscar"
+```
+
+---
+
 ## Guía de Pruebas con cURL
 
 ```bash
@@ -358,6 +388,9 @@ curl -i -X POST http://localhost:8090/api/convocatorias \
     "documentacion": ["CD o plataformas digitales"],
     "fuenteId": null
   }'
+
+# 4. Buscar por filtros
+curl -i "http://localhost:8090/api/convocatorias/buscar?estado=ABIERTA&categoria=Música"
 ```
 
 ---
@@ -365,5 +398,5 @@ curl -i -X POST http://localhost:8090/api/convocatorias \
 ## Configuración en Postman
 
 1. Crear una colección llamada `Convocatorias API`.
-2. Agregar las 3 peticiones descritas arriba con su correspondiente verbo HTTP.
+2. Agregar las 4 peticiones descritas arriba con su correspondiente verbo HTTP.
 3. En la petición `POST`, configurar el Header `Content-Type: application/json` y seleccionar `body` -> `raw` -> `JSON`.

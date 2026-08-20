@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import cl.tucultura.convocatorias_api.application.service.ConvocatoriaService;
@@ -42,6 +43,27 @@ public class ConvocatoriaController {
                 .map(ConvocatoriaResponseDTO::fromDomain)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<List<ConvocatoriaResponseDTO>> buscar(
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String categoria) {
+        
+        if (estado != null) {
+            try {
+                Convocatoria.EstadoConvocatoria.valueOf(estado.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Estado inválido. Valores permitidos: ABIERTA, PROXIMAMENTE, CERRADA, CANCELADA");
+            }
+        }
+
+        List<Convocatoria> resultados = service.buscarPorFiltros(estado != null ? estado.toUpperCase() : null, categoria);
+        List<ConvocatoriaResponseDTO> response = resultados.stream()
+                .map(ConvocatoriaResponseDTO::fromDomain)
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
