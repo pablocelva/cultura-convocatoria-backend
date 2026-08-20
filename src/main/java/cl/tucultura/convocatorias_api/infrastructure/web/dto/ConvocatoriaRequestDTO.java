@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.hibernate.validator.constraints.URL;
 
 import cl.tucultura.convocatorias_api.domain.model.Convocatoria;
+import cl.tucultura.convocatorias_api.domain.valueobject.*;
 import jakarta.validation.constraints.*;
 
 public record ConvocatoriaRequestDTO(
@@ -47,22 +48,21 @@ public record ConvocatoriaRequestDTO(
     List<String> documentacion,
     UUID fuenteId
 ) {
-   public Convocatoria toDomain() {
+    public Convocatoria toDomain() {
         if (fechaCierre.isBefore(fechaApertura) || fechaCierre.isEqual(fechaApertura)) {
             throw new IllegalArgumentException("La fecha de cierre debe ser posterior a la fecha de apertura.");
         }
 
         return new Convocatoria(
             null, 
-            this.titulo.trim(), 
-            this.descripcion.trim(),
+            new Titulo(this.titulo), 
+            new Descripcion(this.descripcion),
             Convocatoria.TipoConvocatoria.valueOf(this.tipo.toUpperCase()),
-            this.categoria.trim(), 
-            this.monto, 
-            this.moneda != null ? this.moneda.toUpperCase() : "CLP",
+            new Categoria(this.categoria), 
+            this.monto != null ? new Monto(this.monto, this.moneda) : null,
             this.fechaApertura,
             this.fechaCierre,
-            this.urlOficial,
+            new UrlOficial(this.urlOficial),
             null, 
             this.requisitos != null ? this.requisitos : List.of(),
             this.documentacion != null ? this.documentacion : List.of(),

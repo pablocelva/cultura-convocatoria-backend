@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import cl.tucultura.convocatorias_api.application.service.ConvocatoriaService;
 import cl.tucultura.convocatorias_api.domain.model.Convocatoria;
+import cl.tucultura.convocatorias_api.domain.valueobject.*;
 
 @WebMvcTest(ConvocatoriaController.class)
 class ConvocatoriaControllerTest {
@@ -34,12 +35,12 @@ class ConvocatoriaControllerTest {
 
     private Convocatoria crearDominio(UUID id, Convocatoria.EstadoConvocatoria estado) {
         return new Convocatoria(
-            id, "Beca Música 2026", "Beca para artistas emergentes",
-            Convocatoria.TipoConvocatoria.BECA, "Música",
-            BigDecimal.valueOf(5000000), "CLP",
+            id, new Titulo("Beca Música 2026"), new Descripcion("Beca para artistas emergentes"),
+            Convocatoria.TipoConvocatoria.BECA, new Categoria("Música"),
+            new Monto(BigDecimal.valueOf(5000000), "CLP"),
             LocalDateTime.of(2026, 8, 1, 0, 0),
             LocalDateTime.of(2026, 12, 31, 23, 59),
-            "https://cultura.gob.cl", estado,
+            new UrlOficial("https://cultura.gob.cl"), estado,
             List.of("Ser mayor de 18"), List.of("CV"), null
         );
     }

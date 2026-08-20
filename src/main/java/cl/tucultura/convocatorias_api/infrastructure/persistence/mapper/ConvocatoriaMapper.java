@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 import cl.tucultura.convocatorias_api.domain.model.Convocatoria;
+import cl.tucultura.convocatorias_api.domain.valueobject.*;
 import cl.tucultura.convocatorias_api.infrastructure.persistence.entity.ConvocatoriaEntity;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -19,15 +20,14 @@ public class ConvocatoriaMapper {
         if (entity == null) return null;
         return new Convocatoria(
             entity.getId(),
-            entity.getTitulo(),
-            entity.getDescripcion(),
+            new Titulo(entity.getTitulo()),
+            new Descripcion(entity.getDescripcion()),
             Convocatoria.TipoConvocatoria.valueOf(entity.getTipo()),
-            entity.getCategoria(),
-            entity.getMonto(),
-            entity.getMoneda(),
+            new Categoria(entity.getCategoria()),
+            entity.getMonto() != null ? new Monto(entity.getMonto(), entity.getMoneda()) : null,
             entity.getFechaApertura(),
             entity.getFechaCierre(),
-            entity.getUrlOficial(),
+            new UrlOficial(entity.getUrlOficial()),
             Convocatoria.EstadoConvocatoria.valueOf(entity.getEstado()),
             parseJson(entity.getRequisitosJson()),
             parseJson(entity.getDocumentacionJson()),
@@ -39,15 +39,15 @@ public class ConvocatoriaMapper {
         if (convocatoria == null) return null;
         ConvocatoriaEntity entity = new ConvocatoriaEntity();
         entity.setId(convocatoria.id() != null ? convocatoria.id() : UUID.randomUUID());
-        entity.setTitulo(convocatoria.titulo());
-        entity.setDescripcion(convocatoria.descripcion());
+        entity.setTitulo(convocatoria.titulo().value());
+        entity.setDescripcion(convocatoria.descripcion().value());
         entity.setTipo(convocatoria.tipo().name());
-        entity.setCategoria(convocatoria.categoria());
-        entity.setMonto(convocatoria.monto());
-        entity.setMoneda(convocatoria.moneda());
+        entity.setCategoria(convocatoria.categoria().value());
+        entity.setMonto(convocatoria.monto() != null ? convocatoria.monto().value() : null);
+        entity.setMoneda(convocatoria.monto() != null ? convocatoria.monto().moneda() : null);
         entity.setFechaApertura(convocatoria.fechaApertura());
         entity.setFechaCierre(convocatoria.fechaCierre());
-        entity.setUrlOficial(convocatoria.urlOficial());
+        entity.setUrlOficial(convocatoria.urlOficial().value());
         entity.setEstado(convocatoria.estado().name());
         entity.setFuenteId(convocatoria.fuenteId());
         entity.setRequisitosJson(toJson(convocatoria.requisitos()));

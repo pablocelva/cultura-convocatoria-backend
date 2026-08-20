@@ -68,7 +68,7 @@ public class ConvocatoriaServiceImpl implements ConvocatoriaService {
         Convocatoria convocatoriaConEstado = new Convocatoria(
             convocatoria.id(), convocatoria.titulo(), convocatoria.descripcion(),
             convocatoria.tipo(), convocatoria.categoria(), convocatoria.monto(),
-            convocatoria.moneda(), convocatoria.fechaApertura(), convocatoria.fechaCierre(),
+            convocatoria.fechaApertura(), convocatoria.fechaCierre(),
             convocatoria.urlOficial(), estadoCalculado, convocatoria.requisitos(),
             convocatoria.documentacion(), convocatoria.fuenteId()
         );

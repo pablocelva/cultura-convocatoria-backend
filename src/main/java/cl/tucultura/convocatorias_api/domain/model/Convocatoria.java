@@ -1,21 +1,21 @@
 package cl.tucultura.convocatorias_api.domain.model;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import cl.tucultura.convocatorias_api.domain.valueobject.*;
+
 public record Convocatoria(
     UUID id,
-    String titulo,
-    String descripcion,
+    Titulo titulo,
+    Descripcion descripcion,
     TipoConvocatoria tipo,
-    String categoria,
-    BigDecimal monto,
-    String moneda,
+    Categoria categoria,
+    Monto monto,
     LocalDateTime fechaApertura,
     LocalDateTime fechaCierre,
-    String urlOficial,
+    UrlOficial urlOficial,
     EstadoConvocatoria estado,
     List<String> requisitos,
     List<String> documentacion,

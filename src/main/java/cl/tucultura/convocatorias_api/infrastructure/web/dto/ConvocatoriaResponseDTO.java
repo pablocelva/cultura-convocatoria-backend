@@ -15,9 +15,11 @@ public record ConvocatoriaResponseDTO(
 ) {
     public static ConvocatoriaResponseDTO fromDomain(Convocatoria c) {
         return new ConvocatoriaResponseDTO(
-            c.id(), c.titulo(), c.descripcion(), c.tipo().name(), c.categoria(),
-            c.monto(), c.moneda(), c.fechaApertura(), c.fechaCierre(),
-            c.urlOficial(), c.estado().name(), c.requisitos(), c.documentacion(), c.fuenteId()
+            c.id(), c.titulo().value(), c.descripcion().value(), c.tipo().name(), c.categoria().value(),
+            c.monto() != null ? c.monto().value() : null,
+            c.monto() != null ? c.monto().moneda() : null,
+            c.fechaApertura(), c.fechaCierre(),
+            c.urlOficial().value(), c.estado().name(), c.requisitos(), c.documentacion(), c.fuenteId()
         );
     }
-}    
+}
