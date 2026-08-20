@@ -4,7 +4,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. Tabla: Fuentes (Organizaciones que publican convocatorias)
 CREATE TABLE fuentes (
-    id SERIAL PRIMARY KEY,
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
     pais VARCHAR(100),
     sitio_web VARCHAR(255),
@@ -27,10 +27,10 @@ CREATE TABLE convocatorias (
     estado VARCHAR(50) DEFAULT 'PROXIMAMENTE', -- ABIERTA, CERRADA, etc.
     
     -- JSONB para almacenamiento flexible de listas
-    requisitos JSONB DEFAULT '[]'::jsonb,
-    documentacion JSONB DEFAULT '[]'::jsonb,
+    requisitos_json JSONB DEFAULT '[]'::jsonb,
+    documentacion_json JSONB DEFAULT '[]'::jsonb,
     
-    fuente_id INTEGER REFERENCES fuentes(id) ON DELETE SET NULL,
+    fuente_id UUID REFERENCES fuentes(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -53,7 +53,7 @@ CREATE INDEX idx_convocatorias_estado ON convocatorias(estado);
 CREATE INDEX idx_convocatorias_fecha_cierre ON convocatorias(fecha_cierre);
 CREATE INDEX idx_convocatorias_categoria ON convocatorias(categoria);
 -- Índice GIN específico para buscar dentro de campos JSONB
-CREATE INDEX idx_convocatorias_requisitos_gin ON convocatorias USING GIN(requisitos);
+CREATE INDEX idx_convocatorias_requisitos_gin ON convocatorias USING GIN(requisitos_json);
 
 -- 6. Datos de prueba (Opcional)
 INSERT INTO fuentes (nombre, pais, sitio_web) VALUES 
