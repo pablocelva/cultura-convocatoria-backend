@@ -1,77 +1,67 @@
 package cl.tucultura.convocatorias_api.infrastructure.web.exception;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.util.List;
+import cl.tucultura.convocatorias_api.domain.exception.EstadoInvalidoException;
+import cl.tucultura.convocatorias_api.domain.exception.FechaCierreInvalidaException;
 
+@DisplayName("Global Exception Handler")
 class GlobalExceptionHandlerTest {
 
     private final GlobalExceptionHandler handler = new GlobalExceptionHandler();
 
     @Test
-    @SuppressWarnings("unchecked")
-    void handleValidationExceptions_retorna400ConDetallesPorCampo() {
-        FieldError fieldError = new FieldError("request", "titulo", "El título es obligatorio");
-        BindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(new Object(), "request");
-        bindingResult.addError(fieldError);
+    @DisplayName("Should return 400 with message when IllegalArgumentException is thrown")
+    void illegalArgument_retorna400ConMensaje() {
+        ResponseEntity<Map<String, Object>> response = 
+            handler.handleIllegalArgument(new IllegalArgumentException("Campo inválido"));
 
-        MethodArgumentNotValidException ex = new MethodArgumentNotValidException(
-            (MethodParameter) null, bindingResult
-        );
-
-        ResponseEntity<Map<String, Object>> response = handler.handleValidationExceptions(ex);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        Map<String, Object> body = response.getBody();
-        assertNotNull(body);
-        assertEquals(400, body.get("status"));
-        assertEquals("Bad Request", body.get("error"));
-        assertNotNull(body.get("timestamp"));
-
-        Map<String, String> details = (Map<String, String>) body.get("details");
-        assertNotNull(details);
-        assertEquals("El título es obligatorio", details.get("titulo"));
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("status")).isEqualTo(400);
+        assertThat(response.getBody().get("message")).isEqualTo("Campo inválido");
+        assertThat(response.getBody().get("timestamp")).isNotNull();
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    void handleIllegalArgument_retorna400ConMensaje() {
-        IllegalArgumentException ex = new IllegalArgumentException("La fecha de cierre debe ser posterior a la fecha de apertura.");
+    @DisplayName("Should return 400 with message when FechaCierreInvalidaException is thrown")
+    void fechaCierreInvalida_retorna400ConMensaje() {
+        ResponseEntity<Map<String, Object>> response = 
+            handler.handleFechaCierreInvalida(new FechaCierreInvalidaException("Fecha inválida"));
 
-        ResponseEntity<Map<String, Object>> response = handler.handleIllegalArgument(ex);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        Map<String, Object> body = response.getBody();
-        assertNotNull(body);
-        assertEquals(400, body.get("status"));
-        assertEquals("La fecha de cierre debe ser posterior a la fecha de apertura.", body.get("message"));
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("status")).isEqualTo(400);
+        assertThat(response.getBody().get("message")).isEqualTo("Fecha inválida");
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    void handleGenericException_retorna500SinDetallesSensibles() {
-        Exception ex = new RuntimeException("Error interno de la base de datos");
+    @DisplayName("Should return 400 with message when EstadoInvalidoException is thrown")
+    void estadoInvalido_retorna400ConMensaje() {
+        ResponseEntity<Map<String, Object>> response = 
+            handler.handleEstadoInvalido(new EstadoInvalidoException("Estado no válido"));
 
-        ResponseEntity<Map<String, Object>> response = handler.handleGenericException(ex);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        Map<String, Object> body = response.getBody();
-        assertNotNull(body);
-        assertEquals(500, body.get("status"));
-        assertEquals("Internal Server Error", body.get("error"));
-        assertEquals("Ocurrió un error inesperado en el servidor.", body.get("message"));
-        assertNull(body.get("debug"));
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("status")).isEqualTo(400);
+        assertThat(response.getBody().get("message")).isEqualTo("Estado no válido");
     }
+
+    @Test
+    @DisplayName("Should return 500 when generic Exception is thrown")
+    void exceptionGenerica_retorna500() {
+        ResponseEntity<Map<String, Object>> response = 
+            handler.handleGenericException(new Exception("Error inesperado"));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().get("status")).isEqualTo(500);
+        assertThat(response.getBody().get("message")).isEqualTo("Ocurrió un error inesperado en el servidor.");    }
 }

@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import cl.tucultura.convocatorias_api.domain.exception.FechaCierreInvalidaException;
 import cl.tucultura.convocatorias_api.domain.model.Convocatoria;
 
 @DisplayName("Convocatoria Request DTO")
@@ -105,7 +106,7 @@ class ConvocatoriaRequestDTOTest {
             "https://x.org", null, null, null
         );
         assertThatThrownBy(dto::toDomain)
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(FechaCierreInvalidaException.class)
             .hasMessage("La fecha de cierre debe ser posterior a la fecha de apertura.");
     }
 
@@ -121,7 +122,7 @@ class ConvocatoriaRequestDTOTest {
             "https://x.org", null, null, null
         );
         assertThatThrownBy(dto::toDomain)
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(FechaCierreInvalidaException.class);
     }
 
     @Test

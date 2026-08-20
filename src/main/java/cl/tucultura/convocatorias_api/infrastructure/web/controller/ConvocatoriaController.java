@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import cl.tucultura.convocatorias_api.application.service.ConvocatoriaService;
+import cl.tucultura.convocatorias_api.domain.exception.EstadoInvalidoException;
 import cl.tucultura.convocatorias_api.domain.model.Convocatoria;
 import cl.tucultura.convocatorias_api.infrastructure.web.dto.ConvocatoriaRequestDTO;
 import cl.tucultura.convocatorias_api.infrastructure.web.dto.ConvocatoriaResponseDTO;
@@ -54,7 +55,7 @@ public class ConvocatoriaController {
             try {
                 Convocatoria.EstadoConvocatoria.valueOf(estado.toUpperCase());
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Estado inválido. Valores permitidos: ABIERTA, PROXIMAMENTE, CERRADA, CANCELADA");
+                throw new EstadoInvalidoException("Estado inválido. Valores permitidos: ABIERTA, PROXIMAMENTE, CERRADA, CANCELADA");
             }
         }
 

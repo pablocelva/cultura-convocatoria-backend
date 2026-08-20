@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.hibernate.validator.constraints.URL;
 
+import cl.tucultura.convocatorias_api.domain.exception.FechaCierreInvalidaException;
 import cl.tucultura.convocatorias_api.domain.model.Convocatoria;
 import cl.tucultura.convocatorias_api.domain.valueobject.*;
 import jakarta.validation.constraints.*;
@@ -50,7 +51,7 @@ public record ConvocatoriaRequestDTO(
 ) {
     public Convocatoria toDomain() {
         if (fechaCierre.isBefore(fechaApertura) || fechaCierre.isEqual(fechaApertura)) {
-            throw new IllegalArgumentException("La fecha de cierre debe ser posterior a la fecha de apertura.");
+            throw new FechaCierreInvalidaException("La fecha de cierre debe ser posterior a la fecha de apertura.");
         }
 
         return new Convocatoria(
